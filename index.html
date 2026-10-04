@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hoyo · Golf de dados diario</title>
+<meta name="description" content="Un hoyo de golf por día. Los dados marcan la distancia y vos elegís hacia dónde pegarle. Embocá en la menor cantidad de golpes.">
+<link rel="canonical" href="https://mcerdeira.github.io/golf/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Hoyo">
+<meta property="og:locale" content="es_AR">
+<meta property="og:url" content="https://mcerdeira.github.io/golf/">
+<meta property="og:title" content="Hoyo · Golf de dados diario">
+<meta property="og:description" content="Un hoyo de golf por día. Los dados marcan la distancia y vos elegís hacia dónde pegarle. Embocá en la menor cantidad de golpes.">
+<meta property="og:image" content="https://mcerdeira.github.io/golf/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Campo de golf de 7 por 9 casillas con calle, lago, arena y árboles, y el recorrido de la pelota hasta la bandera.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hoyo · Golf de dados diario">
+<meta name="twitter:description" content="Un hoyo de golf por día. Los dados marcan la distancia y vos elegís hacia dónde pegarle. Embocá en la menor cantidad de golpes.">
+<meta name="twitter:image" content="https://mcerdeira.github.io/golf/og.png">
+<meta name="twitter:image:alt" content="Campo de golf de 7 por 9 casillas con calle, lago, arena y árboles, y el recorrido de la pelota hasta la bandera.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#f5eddc">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23dde5b6%22/%3E%3Cellipse cx=%2214%22 cy=%2225%22 rx=%227%22 ry=%223%22 fill=%22%23a98a63%22/%3E%3Cpath d=%22M14 25V5%22 stroke=%22%238b6b47%22 stroke-width=%222.4%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M15 5.500000l12 4.500000l-12 4.500000z%22 fill=%22%23e0795a%22/%3E%3C/svg%3E">
+<style>
+:root{
+  box-sizing:border-box;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f5eddc; --card:#fbf6ea; --fg:#5a4631; --muted:#7f6c52; --soft:rgba(139,107,71,.13);
+  --primary:#8b6b47; --on-primary:#fff8ea;
+  --rough:#c5cd9c; --tuft:#aebb86; --fair:#e0e7ba; --fair2:#d3dca6;
+  --sand:#f3e0b5; --sand-dot:#dcc189; --water:#b9dde1; --wave:#8fc5cd;
+  --tree:#94b47b; --tree2:#abc791; --trunk:#b08d65; --shade:rgba(90,70,49,.16);
+  --green:#eaf0c8; --cup:#a98a63; --pole:#8b6b47; --flag:#e0795a; --tee:#f5eddc;
+  --ball-line:#9a8468; --die:#fffaf0; --sol:#d0704f;
+  --good-text:#5c7f35; --bad:#c8603f;
+  --r:10px;
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;min-height:100vh}
+main{width:min(100%,440px);padding:16px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+p{margin:0}
+h1,h2{font-size:22px;font-weight:800;line-height:1.2;letter-spacing:-.02em;margin:0}
+.small,.stats,.practice{font-size:14px}
+.muted,.stat span{color:var(--muted)}
+
+header{display:flex;align-items:baseline;gap:8px}
+
+.btn,.help{font:inherit;font-weight:600;color:var(--fg);cursor:pointer;border:2px solid var(--primary);background:transparent;touch-action:manipulation}
+.btn{flex:1;min-height:44px;padding:10px 16px;border-radius:var(--r);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.btn.primary{background:var(--primary);color:var(--on-primary)}
+.btn:disabled{opacity:.45;cursor:default}
+.help{width:32px;height:32px;border-radius:50%;padding:0;line-height:1;margin-left:auto;align-self:center;position:relative}
+.help::after{content:"";position:absolute;inset:-8px}
+.btn:focus-visible,.help:focus-visible,svg.board:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.actions{display:flex;gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid4 .btn{padding:8px 4px;font-size:14px}
+
+.dice{display:flex;align-items:center;gap:10px;min-height:60px}
+.dice svg{display:block;flex:none}
+.dice .next{opacity:.7}
+.dice .lbl{font-size:13px;color:var(--muted);margin-left:6px}
+#info{min-height:23px}
+#info strong{font-weight:700}
+
+.stats{display:flex;flex-wrap:wrap;gap:0 16px}
+.stat strong{font-weight:700;font-variant-numeric:tabular-nums}
+
+svg.board{width:100%;aspect-ratio:7/9;display:block;touch-action:manipulation;user-select:none;-webkit-user-select:none;border-radius:14px;background:var(--rough);cursor:pointer;-webkit-tap-highlight-color:transparent}
+svg text{font:700 19px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-anchor:middle;fill:var(--fg)}
+.tg{transform-box:fill-box;transform-origin:center;animation:pulse 1.3s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(.84)}}
+.wave{transform-box:fill-box;transform-origin:left center;animation:flag .8s ease-out}
+@keyframes flag{25%{transform:scaleX(.6)}50%{transform:scaleX(1.15)}75%{transform:scaleX(.85)}}
+@media (prefers-reduced-motion:reduce){.tg,.wave{animation:none}}
+
+#msg{min-height:21px}
+#msg.warn{color:var(--bad);font-weight:600}
+main:has(.result.show) #msg:empty{display:none}
+.result{display:none;flex-direction:column;gap:16px;margin-top:4px}
+.result.show{display:flex}
+.share{width:100%;resize:none;font:inherit;background:var(--soft);color:var(--fg);border:0;border-radius:var(--r);padding:8px 16px}
+#cd{font-variant-numeric:tabular-nums}
+.practice{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+
+.modal{position:fixed;inset:0;z-index:10;background:rgba(122,98,68,.5);display:none;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.card{width:min(100%,400px);max-height:100%;overflow:auto;background:var(--card);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.legend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:14px}
+.legend li{display:flex;align-items:center;gap:8px;line-height:1.25}
+.legend svg{width:40px;height:40px;flex:none;background:var(--rough);border-radius:8px}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.demo{display:flex;align-items:center;gap:12px}
+.demo svg.mini{flex:1;min-width:0;border-radius:var(--r);background:var(--rough)}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="title">Hoyo</h1>
+    <span class="small muted" id="meta"></span>
+    <button class="help" id="helpBtn" aria-label="Cómo se juega">?</button>
+  </header>
+
+  <div class="dice" id="dice" aria-live="polite"></div>
+  <p class="small" id="info"></p>
+
+  <svg class="board" id="board" viewBox="0 0 700 900" role="application" tabindex="0"
+       aria-label="Campo de 7 por 9 casillas. Tocá un anillo para pegarle, o elegí la dirección con las flechas y confirmá con Enter."></svg>
+
+  <div class="stats">
+    <div class="stat"><span id="lblStroke">Golpe</span> <strong id="vStroke">1</strong></div>
+    <div class="stat"><span>Par</span> <strong id="vPar">0</strong></div>
+  </div>
+  <p class="small muted" id="msg" aria-live="polite"></p>
+
+  <section class="result" id="result" aria-live="polite">
+    <div>
+      <h2 id="resTitle"></h2>
+      <p class="muted" id="resSub"></p>
+    </div>
+    <textarea class="share" id="shareText" rows="2" readonly aria-label="Resultado para compartir"></textarea>
+    <div class="actions">
+      <button class="btn primary" id="shareBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>
+        <span id="shareLbl">Compartir</span>
+      </button>
+      <button class="btn" id="solBtn" hidden>Ver la solución</button>
+    </div>
+    <div class="stats" id="dailyStats">
+      <div class="stat"><span>Jugados</span> <strong id="stPlayed">0</strong></div>
+      <div class="stat"><span>Pares</span> <strong id="stPars">0</strong></div>
+      <div class="stat"><span>Racha</span> <strong id="stStreak">0</strong></div>
+    </div>
+    <p class="small muted" id="nextRow">Próximo hoyo en <span id="cd">--:--:--</span></p>
+  </section>
+
+  <section class="practice">
+    <span class="muted">Práctica</span>
+    <div class="grid4">
+      <button class="btn" data-lvl="1">Fácil</button>
+      <button class="btn" data-lvl="3">Media</button>
+      <button class="btn" data-lvl="5">Difícil</button>
+      <button class="btn" data-lvl="0">Experto</button>
+    </div>
+    <button class="btn" id="back" hidden>Volver al hoyo de hoy</button>
+  </section>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="card">
+    <h2 id="mTitle">Cómo se juega</h2>
+    <p>Embocá la pelota en la menor cantidad de golpes. Hay un hoyo nuevo cada día, igual para todos.</p>
+    <ol class="rules">
+      <li>El dado marca la distancia: la pelota vuela esa cantidad de casillas en línea recta.</li>
+      <li>Vos elegís hacia dónde: tocá uno de los anillos. Cada golpe es definitivo.</li>
+      <li>La pelota no puede caer en el agua ni atravesar árboles, y tiene que caer justo en el hoyo.</li>
+    </ol>
+    <div class="demo">
+      <span id="demoDie"></span>
+      <svg class="mini" id="demo" viewBox="0 0 500 200" role="img" aria-label="Ejemplo: con un 3 la pelota pasa por encima del agua y cae tres casillas más allá."></svg>
+    </div>
+    <p class="small muted">Con un 3, la pelota pasa por encima del agua y cae tres casillas más allá.</p>
+    <ul class="legend">
+      <li><svg viewBox="0 0 100 100" data-ic="1"></svg>Calle: +1 a la tirada</li>
+      <li><svg viewBox="0 0 100 100" data-ic="2"></svg>Arena: −1 a la tirada</li>
+      <li><svg viewBox="0 0 100 100" data-ic="3"></svg>Agua: se sobrevuela</li>
+      <li><svg viewBox="0 0 100 100" data-ic="4"></svg>Árbol: bloquea</li>
+      <li><svg viewBox="0 0 100 100" data-ic="0"></svg>Pasto alto</li>
+      <li><svg viewBox="0 0 100 100" data-ic="hole"></svg>Hoyo</li>
+    </ul>
+    <p class="small muted">El bonus depende de dónde está parada la pelota. Ves la tirada actual y las dos siguientes; son 12 en total. Si no hay ningún destino posible, perdés el golpe.</p>
+    <button class="btn primary" id="modalClose">Jugar</button>
+  </div>
+</div>
+
+<script>
+// ---- config ----
+const GAME_NAME = 'Hoyo';
+// Public address of the game, appended to the shared result. Change it here if the site moves.
+const SITE_URL = 'https://mcerdeira.github.io/golf/';
+const CONFIG = {
+  GRID_W: 7, GRID_H: 9,
+  SEQUENCE_LENGTH: 12,
+  LOOKAHEAD: 3,          // current roll + the next ones shown
+  FAIR_BONUS: 1, SAND_BONUS: -1,
+  FLY_OVER_SINKS: false, // true: flying over the hole sinks the ball
+  LAUNCH_DATE: '2026-10-04', // puzzle Nº 1
+  MAX_ATTEMPTS: 8000
+};
+
+const W = CONFIG.GRID_W, H = CONFIG.GRID_H, CELLS = W * H;
+const ROUGH = 0, FAIR = 1, SAND = 2, WATER = 3, TREE = 4;
+const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]]; // N, E, S, O as [dc, dr]
+const INF = 99;
+
+// ---- rng (integer-only, same result on every device) ----
+function hashStr(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  h ^= h >>> 16; h = Math.imul(h, 2246822507); h ^= h >>> 13; h = Math.imul(h, 3266489909); h ^= h >>> 16;
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ---- rules ----
+// A puzzle P is { terr, tee, hole, seq }. Tee and hole cells are ROUGH.
+function distance(P, cell, roll) {
+  const t = P.terr[cell];
+  return Math.max(1, roll + (t === FAIR ? CONFIG.FAIR_BONUS : t === SAND ? CONFIG.SAND_BONUS : 0));
+}
+// Flies d cells from `cell` towards direction k. Returns the landing cell, or -1 if the shot is illegal.
+// landWhy / landAt say why and where it failed ('out', 'tree', 'water').
+let landWhy = '', landAt = -1;
+function land(P, cell, d, k) {
+  const c0 = cell % W, r0 = (cell - c0) / W, dc = DIRS[k][0], dr = DIRS[k][1];
+  let to = -1;
+  for (let s = 1; s <= d; s++) {
+    const c = c0 + dc * s, r = r0 + dr * s;
+    if (c < 0 || c >= W || r < 0 || r >= H) { landWhy = 'out'; landAt = -1; return -1; }
+    to = r * W + c;
+    if (P.terr[to] === TREE) { landWhy = 'tree'; landAt = to; return -1; }
+    if (CONFIG.FLY_OVER_SINKS && to === P.hole) return to;
+  }
+  if (P.terr[to] === WATER) { landWhy = 'water'; landAt = to; return -1; }
+  return to;
+}
+// The four options for a stroke, in N, E, S, O order.
+function shots(P, cell, roll) {
+  const d = distance(P, cell, roll), out = [];
+  for (let k = 0; k < 4; k++) {
+    const to = land(P, cell, d, k);
+    out.push(to >= 0 ? { dir: k, to, d, ok: true, why: '' } : { dir: k, to: landAt, d, ok: false, why: landWhy });
+  }
+  return out;
+}
+
+// ---- solver ----
+// rest[i][cell]: fewest extra strokes to sink from `cell` using the rolls from index i on (INF if impossible).
+// A stroke with no legal shot still counts and burns the roll.
+function solve(P) {
+  const n = P.seq.length, rest = new Array(n + 1), ways = new Array(n + 1);
+  rest[n] = new Array(CELLS).fill(INF); ways[n] = new Array(CELLS).fill(0);
+  rest[n][P.hole] = 0; ways[n][P.hole] = 1;
+  for (let i = n - 1; i >= 0; i--) {
+    const R = rest[i] = new Array(CELLS), Wy = ways[i] = new Array(CELLS), R1 = rest[i + 1], W1 = ways[i + 1];
+    for (let cell = 0; cell < CELLS; cell++) {
+      if (cell === P.hole) { R[cell] = 0; Wy[cell] = 1; continue; }
+      if (P.terr[cell] === TREE || P.terr[cell] === WATER) { R[cell] = INF; Wy[cell] = 0; continue; }
+      const d = distance(P, cell, P.seq[i]);
+      let best = INF, cnt = 0, any = false;
+      for (let k = 0; k < 4; k++) {
+        const to = land(P, cell, d, k);
+        if (to < 0) continue;
+        any = true;
+        if (R1[to] < best) { best = R1[to]; cnt = W1[to]; } else if (R1[to] === best) cnt += W1[to];
+      }
+      if (!any) { best = R1[cell]; cnt = W1[cell]; }
+      if (best >= INF) { R[cell] = INF; Wy[cell] = 0; } else { R[cell] = best + 1; Wy[cell] = Math.min(cnt, 999); }
+    }
+  }
+  const par = rest[0][P.tee];
+  return { par: par >= INF ? null : par, routes: ways[0][P.tee], rest };
+}
+// First optimal route (N, E, S, O order): list of { dir, to, pen }.
+function bestRoute(P, rest) {
+  const out = [];
+  let cell = P.tee;
+  for (let i = 0; i < P.seq.length && cell !== P.hole && rest[i][cell] < INF; i++) {
+    const d = distance(P, cell, P.seq[i]);
+    let step = null;
+    for (let k = 0; k < 4 && !step; k++) {
+      const to = land(P, cell, d, k);
+      if (to >= 0 && rest[i + 1][to] === rest[i][cell] - 1) step = { dir: k, to, pen: false };
+    }
+    step = step || { dir: -1, to: cell, pen: true };
+    out.push(step); cell = step.to;
+  }
+  return out;
+}
+const manhattan = (a, b) => Math.abs(a % W - b % W) + Math.abs(Math.floor(a / W) - Math.floor(b / W));
+// Always takes the legal shot that lands closest to the hole. Returns strokes used, or null if it never sinks.
+function greedy(P) {
+  let cell = P.tee;
+  for (let i = 0; i < P.seq.length; i++) {
+    const d = distance(P, cell, P.seq[i]);
+    let best = -1, bd = INF;
+    for (let k = 0; k < 4; k++) {
+      const to = land(P, cell, d, k);
+      if (to >= 0 && manhattan(to, P.hole) < bd) { bd = manhattan(to, P.hole); best = to; }
+    }
+    if (best < 0) continue;
+    cell = best;
+    if (cell === P.hole) return i + 1;
+  }
+  return null;
+}
+
+// ---- generator ----
+// Indexed by weekday (0 = Sunday). Practice buttons use the same indexes via data-lvl.
+const DIFF = [
+  { name: 'Experto', par: [6, 6], maxRoutes: 1, greedyFails: true },
+  { name: 'Fácil',   par: [3, 3], maxRoutes: 2, greedyFails: false },
+  { name: 'Fácil',   par: [3, 4], maxRoutes: 2, greedyFails: false },
+  { name: 'Media',   par: [4, 4], maxRoutes: 2, greedyFails: false },
+  { name: 'Media',   par: [4, 5], maxRoutes: 2, greedyFails: true },
+  { name: 'Difícil', par: [5, 5], maxRoutes: 2, greedyFails: true },
+  { name: 'Difícil', par: [5, 6], maxRoutes: 2, greedyFails: true }
+];
+
+function randomBoard(rng) {
+  const ri = n => Math.floor(rng() * n);
+  const terr = new Array(CELLS).fill(ROUGH);
+  const tee = (H - 1) * W + 1 + ri(W - 2);
+  const hr = ri(3), hc = ri(W), hole = hr * W + hc;
+  const paint = (cell, t) => { if (cell !== tee && cell !== hole) terr[cell] = t; };
+  // grows a patch of up to `size` cells from `start`
+  const blob = (start, size, t) => {
+    const cells = [start];
+    for (let tries = 0; cells.length < size && tries < 24; tries++) {
+      const from = cells[ri(cells.length)], k = ri(4);
+      const c = from % W + DIRS[k][0], r = Math.floor(from / W) + DIRS[k][1];
+      if (c < 0 || c >= W || r < 0 || r >= H) continue;
+      if (!cells.includes(r * W + c)) cells.push(r * W + c);
+    }
+    cells.forEach(cell => paint(cell, t));
+  };
+
+  // fairway: a wavy corridor, 2 or 3 cells wide, from the tee up to the hole's row
+  let c = tee % W;
+  for (let r = H - 2; r >= hr; r--) {
+    const v = ri(4);
+    c += v < 2 ? Math.sign(hc - c) : v === 2 ? 0 : ri(2) ? 1 : -1;
+    c = Math.max(0, Math.min(W - 1, c));
+    const wide = ri(2), side = ri(2) ? 1 : -1;
+    paint(r * W + c, FAIR);
+    if (c + side >= 0 && c + side < W) paint(r * W + c + side, FAIR);
+    if (wide && c - side >= 0 && c - side < W) paint(r * W + c - side, FAIR);
+  }
+  // lakes
+  for (let n = 1 + ri(2); n > 0; n--) blob(ri(CELLS - W), 2 + ri(4), WATER);
+  // bunkers, near the hole
+  for (let n = 1 + ri(2); n > 0; n--) {
+    const bc = Math.max(0, Math.min(W - 1, hc + ri(5) - 2)), br = Math.max(0, Math.min(H - 1, hr + ri(5) - 2));
+    blob(br * W + bc, 1 + ri(3), SAND);
+  }
+  // loose trees
+  for (let n = 3 + ri(4), tries = 0; n > 0 && tries < 40; tries++) {
+    const cell = ri(CELLS);
+    if (cell === tee || cell === hole || terr[cell] === TREE) continue;
+    terr[cell] = TREE; n--;
+  }
+  // rolls: uniform 1..6, never three equal in a row
+  const seq = [];
+  for (let i = 0; i < CONFIG.SEQUENCE_LENGTH; i++) {
+    let v;
+    do { v = 1 + ri(6); } while (i >= 2 && seq[i - 1] === v && seq[i - 2] === v);
+    seq.push(v);
+  }
+  return { terr, tee, hole, seq };
+}
+
+// First board that passes every filter of the level; otherwise the one in the par range that passes the most.
+// Never returns null.
+function generateWith(seed, level) {
+  const D = DIFF[level], rng = mulberry32(hashStr(seed));
+  let best = null, bestScore = -1, near = null, nearGap = INF;
+  for (let a = 0; a < CONFIG.MAX_ATTEMPTS || (!best && !near); a++) {
+    const P = randomBoard(rng), S = solve(P);
+    if (S.par === null) continue;
+    const gap = S.par < D.par[0] ? D.par[0] - S.par : S.par > D.par[1] ? S.par - D.par[1] : 0;
+    const g = greedy(P), fails = g === null || g > S.par;
+    const cand = { ...P, par: S.par, routes: S.routes, rest: S.rest, greedyFails: fails, diff: D.name, level };
+    if (gap) { if (!best && gap < nearGap) { near = cand; nearGap = gap; } continue; }
+    const okRoutes = S.routes <= D.maxRoutes, okGreedy = !D.greedyFails || fails;
+    // par should come from choosing well, not from sitting out a roll with no legal shot
+    const okClean = !bestRoute(P, S.rest).some(s => s.pen);
+    if (okRoutes && okGreedy && okClean) return cand;
+    const score = (okClean ? 4 : 0) + (okRoutes ? 2 : 0) + (okGreedy ? 1 : 0);
+    if (score > bestScore) { best = cand; bestScore = score; }
+  }
+  return best || near;
+}
+const generate = (dateKey, weekday) => generateWith('hoyo-v1-' + dateKey, weekday);
+
+function dayNumber(y, m, d) {
+  const [ly, lm, ld] = CONFIG.LAUNCH_DATE.split('-').map(Number);
+  return Math.round((Date.UTC(y, m, d) - Date.UTC(ly, lm - 1, ld)) / 86400000) + 1;
+}
+
+// ---- game state (pure) ----
+// st is { pos, log, done, sunk }; log holds one { dir, to, pen } per stroke.
+const newState = P => ({ pos: P.tee, log: [], done: false, sunk: false });
+// Closes the game if it ended and applies the automatic penalties. Returns the rolls lost.
+function settle(P, st) {
+  const lost = [];
+  for (;;) {
+    if (st.pos === P.hole) { st.done = st.sunk = true; break; }
+    if (st.log.length >= P.seq.length) { st.done = true; break; }
+    const roll = P.seq[st.log.length];
+    if (shots(P, st.pos, roll).some(o => o.ok)) break;
+    st.log.push({ dir: -1, to: st.pos, pen: true });
+    lost.push(roll);
+  }
+  return lost;
+}
+// Plays direction k. Returns false (and changes nothing) if it is not legal.
+function strike(P, st, k) {
+  if (st.done) return false;
+  const o = shots(P, st.pos, P.seq[st.log.length])[k];
+  if (!o || !o.ok) return false;
+  st.log.push({ dir: k, to: o.to, pen: false });
+  st.pos = o.to;
+  return true;
+}
+// Rebuilds a state from the list of chosen directions. Returns null if they do not fit the board.
+function replay(P, dirs) {
+  const st = newState(P);
+  settle(P, st);
+  for (const k of dirs) {
+    if (!Number.isInteger(k) || !strike(P, st, k)) return null;
+    settle(P, st);
+  }
+  return st;
+}
+
+// ---- share ----
+const scoreLabel = over => over === 0 ? 'Par' : over === 1 ? 'Bogey' : over === 2 ? 'Doble bogey' : over === 3 ? 'Triple bogey' : '+' + over;
+// One square per stroke: green while par was still reachable, yellow once it was not, red for a penalty.
+function strokeSquares(P, log) {
+  return log.map((s, i) => s.pen ? '🟥' : i + 1 + P.rest[i + 1][s.to] === P.par ? '🟩' : '🟨').join('');
+}
+function shareText(P, st, title) {
+  const n = st.log.length, over = n - P.par;
+  const tail = st.sunk ? `  ${n} ${n === 1 ? 'golpe' : 'golpes'} (${over ? '+' + over : 'par'})` : ' ❌';
+  return `${title} ⛳ Par ${P.par}\n${strokeSquares(P, st.log)}${tail}\n${SITE_URL}`;
+}
+
+// ---- drawing: every piece returns an SVG string, 100 units per cell ----
+const cx = (P, i) => (i % P.w) * 100 + 50, cy = (P, i) => Math.floor(i / P.w) * 100 + 50;
+
+// Cells of one terrain merged into rounded patches.
+function patches(P, type, fill) {
+  let s = '';
+  const w = P.w, n = w * P.h, t = P.terr;
+  for (let i = 0; i < n; i++) {
+    if (t[i] !== type) continue;
+    const x = (i % w) * 100, y = Math.floor(i / w) * 100;
+    const R = i % w < w - 1 && t[i + 1] === type, D = i + w < n && t[i + w] === type;
+    s += `<rect x="${x + 4}" y="${y + 4}" width="92" height="92" rx="26"/>`;
+    if (R) s += `<rect x="${x + 50}" y="${y + 4}" width="100" height="92"/>`;
+    if (D) s += `<rect x="${x + 4}" y="${y + 50}" width="92" height="100"/>`;
+    if (R && D && t[i + w + 1] === type) s += `<rect x="${x + 50}" y="${y + 50}" width="100" height="100"/>`;
+  }
+  return s ? `<g fill="${fill}">${s}</g>` : '';
+}
+function tuft(x, y, i) {
+  const a = 18 + (i * 37) % 50, b = 30 + (i * 53) % 46;
+  return `<path d="M${x + a} ${y + b}l5-11l4 11M${x + 84 - a + 6} ${y + 106 - b}l4-9l4 9" fill="none" stroke="var(--tuft)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+function sandDots(x, y) {
+  return [[28, 34], [62, 27], [46, 55], [72, 66], [30, 74]]
+    .map(p => `<circle cx="${x + p[0]}" cy="${y + p[1]}" r="4" fill="var(--sand-dot)"/>`).join('');
+}
+function waves(x, y) {
+  return `<path d="M${x + 20} ${y + 40}q8-9 16 0t16 0t16 0M${x + 32} ${y + 64}q8-9 16 0t16 0t16 0" fill="none" stroke="var(--wave)" stroke-width="4" stroke-linecap="round"/>`;
+}
+function tree(x, y) {
+  return `<ellipse cx="${x + 50}" cy="${y + 85}" rx="24" ry="7" fill="var(--shade)"/>` +
+    `<rect x="${x + 44}" y="${y + 58}" width="12" height="27" rx="4" fill="var(--trunk)"/>` +
+    `<circle cx="${x + 50}" cy="${y + 42}" r="30" fill="var(--tree)"/>` +
+    `<circle cx="${x + 41}" cy="${y + 33}" r="11" fill="var(--tree2)"/>`;
+}
+function teeMark(x, y) {
+  return `<rect x="${x + 22}" y="${y + 28}" width="56" height="56" rx="14" fill="var(--tee)" opacity=".8"/>` +
+    `<circle cx="${x + 30}" cy="${y + 84}" r="5" fill="var(--flag)"/><circle cx="${x + 70}" cy="${y + 84}" r="5" fill="var(--flag)"/>`;
+}
+function flag(x, y, wave) {
+  return `<circle cx="${x + 50}" cy="${y + 50}" r="46" fill="var(--green)"/>` +
+    `<ellipse cx="${x + 46}" cy="${y + 72}" rx="22" ry="10" fill="var(--cup)"/>` +
+    `<path d="M${x + 46} ${y + 72}V${y + 12}" stroke="var(--pole)" stroke-width="5" stroke-linecap="round"/>` +
+    `<path${wave ? ' class="wave"' : ''} d="M${x + 49} ${y + 13}l36 14l-36 14z" fill="var(--flag)"/>`;
+}
+const ballAt = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="var(--ball-line)" stroke-width="${r > 12 ? 4 : 3}"/>`;
+
+// Dotted, numbered trail. `stops` is [{ cell, n }]; the first one is the start and gets no number.
+function trailSVG(P, stops, color, skipCell) {
+  if (stops.length < 2) return '';
+  let s = `<polyline points="${stops.map(p => cx(P, p.cell) + ',' + cy(P, p.cell)).join(' ')}" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="1 14" stroke-linecap="round" stroke-linejoin="round"/>`;
+  for (let k = 1; k < stops.length; k++) {
+    const p = stops[k];
+    if (p.cell === skipCell || p.cell === P.hole) continue;
+    s += `<circle cx="${cx(P, p.cell)}" cy="${cy(P, p.cell)}" r="16" fill="var(--card)" stroke="${color}" stroke-width="4"/>` +
+      `<text x="${cx(P, p.cell)}" y="${cy(P, p.cell)}" dy=".35em">${p.n}</text>`;
+  }
+  return s;
+}
+
+// P needs { w, h, terr, tee, hole } (tee and hole may be -1).
+// o: { ball, sunk, stops, color, targets: [{ to, sel }], marks: [cell], wave }
+function boardSVG(P, o) {
+  const n = P.w * P.h;
+  let s = `<defs><pattern id="fw" width="100" height="200" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="var(--fair)"/><rect y="100" width="100" height="100" fill="var(--fair2)"/></pattern></defs>`;
+  let deco = '', trees = '';
+  for (let i = 0; i < n; i++) {
+    const x = (i % P.w) * 100, y = Math.floor(i / P.w) * 100, t = P.terr[i];
+    if (t === SAND) deco += sandDots(x, y);
+    else if (t === WATER) deco += waves(x, y);
+    else if (t === TREE) trees += tree(x, y);
+    else if (t === ROUGH && i !== P.tee && i !== P.hole) deco += tuft(x, y, i);
+  }
+  s += patches(P, FAIR, 'url(#fw)') + patches(P, SAND, 'var(--sand)') + patches(P, WATER, 'var(--water)') + deco;
+  if (P.tee >= 0) s += teeMark(cx(P, P.tee) - 50, cy(P, P.tee) - 50);
+  if (P.hole >= 0) s += flag(cx(P, P.hole) - 50, cy(P, P.hole) - 50, o.wave);
+  s += trailSVG(P, o.stops || [], o.color || 'var(--primary)', o.sunk ? -1 : o.ball) + trees;
+  for (const m of o.marks || [])
+    s += `<path d="M${cx(P, m) - 11} ${cy(P, m) - 11}l22 22m0-22l-22 22" stroke="var(--bad)" stroke-width="6" stroke-linecap="round" opacity=".75"/>`;
+  for (const t of o.targets || [])
+    s += `<g class="tg"><circle cx="${cx(P, t.to)}" cy="${cy(P, t.to)}" r="33" fill="rgba(255,255,255,${t.sel ? .75 : .35})" stroke="var(--primary)" stroke-width="${t.sel ? 12 : 9}"/>` +
+      `<circle cx="${cx(P, t.to)}" cy="${cy(P, t.to)}" r="33" fill="none" stroke="#fff" stroke-width="4"/></g>`;
+  if (o.ball >= 0) {
+    s += o.sunk ? ballAt(cx(P, o.ball) - 4, cy(P, o.ball) + 22, 9)
+      : `<g class="ball" transform="translate(${cx(P, o.ball)},${cy(P, o.ball)})"><ellipse cy="15" rx="15" ry="6" fill="var(--shade)"/>${ballAt(0, 0, 17)}</g>`;
+  }
+  return s;
+}
+
+const PIPS = [[], [[50, 50]], [[30, 30], [70, 70]], [[30, 30], [50, 50], [70, 70]], [[30, 30], [70, 30], [30, 70], [70, 70]],
+  [[30, 30], [70, 30], [50, 50], [30, 70], [70, 70]], [[30, 28], [70, 28], [30, 50], [70, 50], [30, 72], [70, 72]]];
+function dieSVG(v, size, cls) {
+  return `<svg class="${cls}" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="Dado: ${v}">` +
+    `<rect x="5" y="5" width="90" height="90" rx="22" fill="var(--die)" stroke="var(--primary)" stroke-width="6"/>` +
+    PIPS[v].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="var(--primary)"/>`).join('') + `</svg>`;
+}
+
+// ---- ui ----
+if (typeof document !== 'undefined') (function () {
+  const params = new URLSearchParams(location.search);
+  const qd = params.get('d'), qseed = params.get('seed');
+  let now = new Date();
+  if (qd && /^\d{4}-\d{2}-\d{2}$/.test(qd)) { const [y, m, d] = qd.split('-').map(Number); now = new Date(y, m - 1, d); }
+  const pad = n => String(n).padStart(2, '0');
+  const dateKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const num = dayNumber(now.getFullYear(), now.getMonth(), now.getDate());
+  const sized = puz => Object.assign(puz, { w: W, h: H });
+  const daily = sized(generate(dateKey, now.getDay()));
+
+  const store = {
+    get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const SKEY = 'hoyo1:' + dateKey, TKEY = 'hoyo1:stats';
+
+  // ---- state ----
+  let P = daily, practice = false, st = newState(P);
+  let sel = -1;          // direction picked with the keyboard
+  let busy = false;      // the ball is flying
+  let note = '';         // penalty message
+  let counted = false;   // today's result is already in the stats
+  let showSol = false, solStops = null, wave = false;
+
+  const $ = id => document.getElementById(id);
+  const svg = $('board'), msg = $('msg');
+  const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const TERR_NAME = ['pasto alto', 'calle', 'arena'];
+
+  const options = () => st.done ? [] : shots(P, st.pos, P.seq[st.log.length]);
+  const stops = () => [{ cell: P.tee }].concat(st.log.map((s, i) => ({ cell: s.to, n: i + 1, pen: s.pen })).filter(s => !s.pen));
+
+  function persist() {
+    if (!practice) store.set(SKEY, { dirs: st.log.filter(s => !s.pen).map(s => s.dir), counted });
+  }
+
+  function render() {
+    const opts = busy ? [] : options(), i = st.log.length;
+    const over = st.done || i >= P.seq.length; // the last roll may be spent while the ball is still flying
+    // dice strip
+    let d = '';
+    if (!over) {
+      d = dieSVG(P.seq[i], 60, 'now');
+      const next = P.seq.slice(i + 1, i + CONFIG.LOOKAHEAD);
+      if (next.length) d += `<span class="lbl">Después</span>` + next.map(v => dieSVG(v, 38, 'next')).join('');
+    }
+    $('dice').innerHTML = d; $('dice').hidden = over;
+    // info line
+    const info = $('info');
+    info.hidden = over;
+    if (!over) {
+      const t = P.terr[st.pos], dist = distance(P, st.pos, P.seq[i]);
+      const where = st.pos === P.tee ? 'el tee' : TERR_NAME[t] + (t === FAIR ? ' (+1)' : t === SAND ? ' (−1)' : '');
+      info.innerHTML = `Tirada ${i + 1} · estás en ${where} → <strong>${dist} ${dist === 1 ? 'casilla' : 'casillas'}</strong>`;
+    }
+    // board
+    svg.innerHTML = showSol
+      ? boardSVG(P, { ball: -1, stops: solStops, color: 'var(--sol)' })
+      : boardSVG(P, {
+        ball: st.pos, sunk: st.sunk, stops: stops(), wave,
+        targets: opts.filter(o => o.ok).map(o => ({ to: o.to, sel: o.dir === sel })),
+        marks: opts.filter(o => o.why === 'water').map(o => o.to)
+      });
+    // counter + message
+    $('lblStroke').textContent = over ? 'Golpes' : 'Golpe';
+    $('vStroke').textContent = over ? i : i + 1;
+    $('vPar').textContent = P.par;
+    msg.classList.toggle('warn', !!note && !st.done);
+    msg.textContent = st.done ? '' : note || (busy ? '' : 'Tocá un anillo para pegarle. No hay vuelta atrás.');
+  }
+
+  // Short lob from one cell to another, then `then()`.
+  function fly(from, to, then) {
+    const g = svg.querySelector('.ball');
+    if (!g || reduced()) { then(); return; }
+    const x0 = cx(P, from), y0 = cy(P, from), x1 = cx(P, to), y1 = cy(P, to), t0 = performance.now(), T = 280;
+    (function frame(t) {
+      const u = Math.min(1, (t - t0) / T), a = Math.sin(Math.PI * u);
+      g.setAttribute('transform', `translate(${x0 + (x1 - x0) * u},${y0 + (y1 - y0) * u - a * 34}) scale(${1 + a * .35})`);
+      if (u < 1) requestAnimationFrame(frame); else then();
+    })(t0);
+  }
+
+  function lostNote(lost) {
+    return lost.length ? `Sin salida con el ${lost.join(' ni con el ')}, perdés ${lost.length === 1 ? 'el golpe' : lost.length + ' golpes'}.` : '';
+  }
+
+  function play(k) {
+    if (busy || st.done || showSol) return;
+    const from = st.pos;
+    if (!strike(P, st, k)) return;
+    // the penalties are derived again on load, so saving the direction is enough
+    persist();
+    busy = true; sel = -1; note = '';
+    render();
+    fly(from, st.pos, () => {
+      busy = false;
+      note = lostNote(settle(P, st));
+      if (st.sunk) { wave = true; setTimeout(() => { wave = false; }, 900); }
+      render();
+      if (st.done) finish(true);
+    });
+  }
+
+  // ---- input ----
+  svg.addEventListener('click', e => {
+    const r = svg.getBoundingClientRect();
+    const c = Math.floor((e.clientX - r.left) / r.width * W), row = Math.floor((e.clientY - r.top) / r.height * H);
+    const o = options().find(o => o.ok && o.to === row * W + c);
+    if (o) play(o.dir);
+  });
+  svg.addEventListener('keydown', e => {
+    const k = { ArrowUp: 0, ArrowRight: 1, ArrowDown: 2, ArrowLeft: 3 }[e.key];
+    if (k !== undefined) {
+      e.preventDefault();
+      if (busy || st.done || showSol) return;
+      if (options()[k].ok) { sel = k; render(); }
+    } else if ((e.key === 'Enter' || e.key === ' ') && sel >= 0) { e.preventDefault(); play(sel); }
+  });
+
+  // ---- result / share ----
+  $('solBtn').addEventListener('click', () => {
+    if (!st.done) return;
+    if (!solStops) solStops = [{ cell: P.tee }].concat(bestRoute(P, P.rest).map((s, i) => ({ cell: s.to, n: i + 1, pen: s.pen })).filter(s => !s.pen));
+    showSol = !showSol;
+    $('solBtn').textContent = showSol ? 'Ver mi jugada' : 'Ver la solución';
+    render();
+    svg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // full text handed to share/clipboard; the on-screen box shows it without the link
+  let shareFull = '';
+
+  function finish(fresh) {
+    const n = st.log.length, par = st.sunk && n === P.par;
+    if (fresh && !practice && !counted) {
+      const s = store.get(TKEY) || { played: 0, pars: 0, streak: 0, last: '' };
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      const yk = `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(y.getDate())}`;
+      s.streak = s.last === yk ? s.streak + 1 : 1;
+      s.played++; if (par) s.pars++;
+      s.last = dateKey; store.set(TKEY, s);
+      counted = true; persist();
+    }
+    const s = store.get(TKEY) || { played: 1, pars: par ? 1 : 0, streak: 1 };
+    if (!practice) { $('stPlayed').textContent = s.played; $('stPars').textContent = s.pars; $('stStreak').textContent = s.streak; }
+    const golpes = k => `${k} ${k === 1 ? 'golpe' : 'golpes'}`;
+    if (!st.sunk) {
+      $('resTitle').textContent = 'No embocaste';
+      $('resSub').textContent = `Se acabaron las ${P.seq.length} tiradas. Se podía en ${golpes(P.par)}.`;
+    } else {
+      $('resTitle').textContent = scoreLabel(n - P.par);
+      $('resSub').textContent = par ? `Embocaste en ${golpes(n)}, el mínimo posible.` : `Embocaste en ${golpes(n)}. Se podía en ${P.par}.`;
+    }
+    $('solBtn').hidden = par;
+    shareFull = shareText(P, st, practice ? GAME_NAME + ' práctica' : GAME_NAME + ' #' + num);
+    $('shareText').value = shareFull.slice(0, shareFull.lastIndexOf('\n'));
+    $('result').classList.add('show');
+    tick();
+    if (fresh) $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  $('shareBtn').addEventListener('click', async () => {
+    const t = shareFull, box = $('shareText'), lbl = $('shareLbl');
+    // phones and tablets get the native share sheet; desktop copies to the clipboard
+    const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (mobile && navigator.share) {
+      try { await navigator.share({ text: t }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    let ok = false;
+    try { await navigator.clipboard.writeText(t); ok = true; } catch (e) {
+      // the fallback copies whatever the box holds, so it needs the link for a moment
+      const shown = box.value;
+      box.value = t;
+      try { box.select(); ok = document.execCommand('copy'); } catch (e2) {}
+      // if nothing worked, leave the full text there so a manual copy includes the link
+      if (ok) { box.value = shown; box.blur(); }
+    }
+    lbl.textContent = ok ? 'Copiado' : 'Seleccioná el texto y copialo';
+    setTimeout(() => { lbl.textContent = 'Compartir'; }, 1800);
+  });
+
+  function tick() {
+    const n = new Date(), next = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
+    const s = Math.max(0, Math.floor((next - n) / 1000));
+    $('cd').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`;
+  }
+  setInterval(tick, 1000);
+
+  // ---- how to play ----
+  const modal = $('modal');
+  function openHelp() { modal.classList.add('show'); $('modalClose').focus(); }
+  function closeHelp() { modal.classList.remove('show'); store.set('hoyo1:seen', 1); }
+  $('helpBtn').addEventListener('click', openHelp);
+  $('modalClose').addEventListener('click', closeHelp);
+  modal.addEventListener('click', e => { if (e.target === modal) closeHelp(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('show')) closeHelp(); });
+
+  document.querySelectorAll('[data-ic]').forEach(el => {
+    const k = el.dataset.ic, hole = k === 'hole';
+    el.innerHTML = boardSVG({ w: 1, h: 1, terr: [hole ? ROUGH : +k], tee: -1, hole: hole ? 0 : -1 }, { ball: -1 });
+  });
+  $('demoDie').innerHTML = dieSVG(3, 48, '');
+  $('demo').innerHTML = boardSVG(
+    { w: 5, h: 2, terr: [ROUGH, FAIR, FAIR, FAIR, TREE, ROUGH, WATER, WATER, ROUGH, ROUGH], tee: -1, hole: -1 },
+    { ball: 5, stops: [{ cell: 5 }, { cell: 8, n: 1 }], targets: [{ to: 8 }] }).replace('class="ball"', '').replace('class="tg"', '');
+
+  // ---- puzzle setup (daily or practice) ----
+  function applyPuzzle(puz, isPractice) {
+    P = puz; practice = isPractice;
+    st = null; counted = false;
+    if (!practice) {
+      const saved = store.get(SKEY);
+      if (saved && Array.isArray(saved.dirs)) { st = replay(P, saved.dirs); counted = !!saved.counted; }
+    }
+    const first = !st;
+    if (first) st = newState(P);
+    note = lostNote(settle(P, st));
+    if (!first) note = '';
+    sel = -1; busy = false; wave = false;
+    $('title').textContent = GAME_NAME;
+    $('meta').textContent = practice ? `Práctica · ${P.diff}` : `Nº ${num} · ${P.diff}`;
+    $('result').classList.remove('show');
+    $('back').hidden = !practice;
+    $('dailyStats').hidden = practice; $('nextRow').hidden = practice;
+    $('shareLbl').textContent = 'Compartir';
+    showSol = false; solStops = null; $('solBtn').hidden = true; $('solBtn').textContent = 'Ver la solución';
+    render();
+    // a result that was saved but never reached the stats (page closed mid-flight) is counted now
+    if (st.done) finish(!practice && !counted);
+  }
+  document.querySelectorAll('[data-lvl]').forEach(b => b.addEventListener('click', () => {
+    const old = b.textContent; b.disabled = true; b.textContent = '…';
+    setTimeout(() => {
+      applyPuzzle(sized(generateWith('p' + Math.random() + '-' + Date.now(), +b.dataset.lvl)), true);
+      b.disabled = false; b.textContent = old;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 30);
+  }));
+  $('back').addEventListener('click', () => { applyPuzzle(daily, false); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  // ?seed=text reproduces one specific hole, played as practice
+  if (qseed) applyPuzzle(sized(generateWith(qseed, now.getDay())), true);
+  else applyPuzzle(daily, false);
+  if (!store.get('hoyo1:seen') && !st.done) openHelp();
+})();
+</script>
+</body>
+</html>
